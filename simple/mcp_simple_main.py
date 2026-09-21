@@ -1,6 +1,6 @@
 import asyncio
 
-from mcp_simple_client import MCPSimpleClient
+from simple.mcp_simple_client import MCPSimpleClient
 
 
 async def main():
