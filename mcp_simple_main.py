@@ -19,13 +19,21 @@ async def main():
         # print("\n调用结果：")
         # print(result)
 
-        resource = await client.read_resource("docs://documents")
-        print("访问直接资源：")
-        print(f"{resource}")
+        # resource = await client.read_resource("docs://documents")
+        # print("访问直接资源：")
+        # print(f"{resource}")
 
-        t_resource = await client.read_resource("docs://documents/deposition.md")
-        print("访问模板化资源 deposition.md ：")
-        print(f"{t_resource}")
+        # t_resource = await client.read_resource("docs://documents/deposition.md")
+        # print("访问模板化资源 deposition.md ：")
+        # print(f"{t_resource}")
+        
+        prompts = await client.list_prompts()
+        print("获取提示词列表：")
+        print(f"{prompts}")
+
+        prompt_detail = await client.get_prompt("format", {"doc_id": "deposition.md"})
+        print("获取提示词 deposition.md ：")
+        print(f"{prompt_detail}")        
 
     finally:
         await client.cleanup()

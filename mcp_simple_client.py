@@ -57,6 +57,20 @@ class MCPSimpleClient:
             elif resource.mime_type == "text/plain":
                 return resource.text
         return None
+    
+    # 列出提示
+    async def list_prompts(self) -> list[types.Prompt]:
+        if self.session is None:
+            return None                
+        result = await self.session.list_prompts()
+        return result.prompts
+    
+    # 获取单个提示
+    async def get_prompt(self, prompt_name, args: dict[str, str]):
+        if self.session is None:
+            return None
+        result = await self.session.get_prompt(prompt_name, args)
+        return result.messages
 
     # 退出时关闭连接
     async def cleanup(self):
