@@ -53,6 +53,22 @@ class MCPAdvanceClient:
             model="deepseek-flash",
             stop_reason="endTurn"
         )
+        
+    # 进度信息回调处理
+    async def print_progress_callback(
+        self, progress: float, total: float | None, message: str | None
+    ):
+        if total is None:
+            percentage = ( progress / total ) * 100
+            print(f"Progress: { progress } / { total } ( { percentage:.1f} % )")
+        else:
+            print(f"Progress: { progress }")
+
+    # 日志信息回调处理
+    async def logging_callback(
+        self, params: types.LoggingMessageNotificationParams
+    ):
+        print(f"[LOG][{params.level}] {params.data}")
 
     # 连接服务端
     async def connect(self, url: str):
@@ -60,9 +76,15 @@ class MCPAdvanceClient:
             streamable_http_client(url)
         )
         read, write = transport
-        # 记得在这里设置 sampling 回调！！！
         self.session = await self.exit_stack.enter_async_context(
-            ClientSession(read, write, sampling_callback=self.sampling_callback)
+            ClientSession(
+                read, 
+                write, 
+                # 记得在这里设置 sampling 回调！！！
+                sampling_callback=self.sampling_callback,
+                # 配置日志的回调处理
+                logging_callback=self.logging_callback,
+            )
         )
         await self.session.initialize()
 
@@ -81,7 +103,12 @@ class MCPAdvanceClient:
         if self.session is None:
             return None
 
-        return await self.session.call_tool(tool_name, tool_input)
+        return await self.session.call_tool(
+            tool_name, 
+            tool_input,
+            # 配置进度的回调处理
+            progress_callback=self.print_progress_callback
+        )
 
     # 退出时关闭连接
     async def cleanup(self):
