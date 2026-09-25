@@ -11,8 +11,14 @@ docs = [
     "未来人工智能需兼顾创新与安全，完善伦理规范和法律监管，才能实现可持续发展。",
 ]
 
+# 自定义可访问 roots 目录
+root_paths = [
+    "<写自己的电脑的实际文件夹路径>/mcp_learning/advance/demo_roots/documents",
+    "<写自己的电脑的实际文件夹路径>/mcp_learning/advance/demo_roots/download",
+]
+
 async def main():
-    client = MCPAdvanceClient()
+    client = MCPAdvanceClient(root_paths=root_paths)
     try:
         await client.connect("http://127.0.0.1:8000/mcp")
         print("连接成功！")
@@ -26,9 +32,27 @@ async def main():
         # print("\n调用结果：")
         # print(result.content[0].text)    
 
-        result = await client.call_tool("web-search", {"topic": "Claude Academy"})
+        # result = await client.call_tool("web-search", {"topic": "Claude Academy"})
+        # print("\n调用结果：")
+        # print(result.content[0].text)      
+        
+        result = await client.call_tool("root-list", {})
         print("\n调用结果：")
-        print(result.content[0].text)             
+        print(result.content[0].text.split("/")[-1])   
+        
+        result = await client.call_tool(
+            "read-file", 
+            {"path": "<写自己的电脑的实际文件夹路径>/mcp_learning/advance/demo_roots/documents/report.txt"}
+        )
+        print("\n调用结果：")
+        print(result.content[0].text)                          
+
+        result = await client.call_tool(
+            "read-file", 
+            {"path": "<写自己的电脑的实际文件夹路径>/mcp_learning/advance/demo_roots/system/system.conf"}
+        )
+        print("\n调用结果：")
+        print(result.content[0].text)     
 
     finally:
         await client.cleanup()

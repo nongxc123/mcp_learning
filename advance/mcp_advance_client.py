@@ -3,12 +3,34 @@ from contextlib import AsyncExitStack
 from mcp import ClientSession, types
 from mcp.client.streamable_http import streamable_http_client
 from mcp.client.session import ClientRequestContext
+from pathlib import Path
+from pydantic import FileUrl
+
 from deepseek_client import deepseek_invoke
 
 class MCPAdvanceClient:
-    def __init__(self) -> None:
+    def __init__(self, root_paths: list[str]) -> None:
         self.session: ClientSession | None = None
+        # 转化 Root 对象
+        self.roots = self._create_roots(root_paths) if root_paths else []
         self.exit_stack = AsyncExitStack()
+
+    # 将字符串路径转化为 Root 对象
+    def _create_roots(self, root_paths: list[str]) -> list[types.Root]:
+        roots = []
+        
+        for path in root_paths:
+            p = Path(path).resolve()
+            file_url = FileUrl(f"file://{p}")
+            roots.append(types.Root(uri=file_url, name=p.name or "Root"))
+        
+        return roots
+    
+    # 返回 Root 列表，当服务端请求时，将 Root 列表返回
+    async def _handle_list_roots(
+        self, context: ClientRequestContext
+    ) -> types.ListRootsResult | types.ErrorData:
+        return types.ListRootsResult(roots=self.roots)
 
     # Sampling 回调处理
     async def sampling_callback(
@@ -84,6 +106,8 @@ class MCPAdvanceClient:
                 sampling_callback=self.sampling_callback,
                 # 配置日志的回调处理
                 logging_callback=self.logging_callback,
+                # 配置获取 roots 回调
+                list_roots_callback=self._handle_list_roots,
             )
         )
         await self.session.initialize()
